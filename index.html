@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>飲料訂單</title>
+<style>
+  :root{
+    --bg:#faf6ef;
+    --card-bg:#ffffff;
+    --text:#2b2420;
+    --muted:#8a7f74;
+    --accent:#c0783c;
+    --accent-2:#7a9a5c;
+    --line:#e8ddd0;
+    --header-bg:#3d3128;
+    --header-text:#faf6ef;
+    --badge-bg:#f1e6d8;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#1c1815;
+      --card-bg:#2a2420;
+      --text:#f3ece2;
+      --muted:#b7a998;
+      --accent:#e2a565;
+      --accent-2:#a3c583;
+      --line:#453a30;
+      --header-bg:#141110;
+      --header-text:#f3ece2;
+      --badge-bg:#3a3128;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#1c1815;
+    --card-bg:#2a2420;
+    --text:#f3ece2;
+    --muted:#b7a998;
+    --accent:#e2a565;
+    --accent-2:#a3c583;
+    --line:#453a30;
+    --header-bg:#141110;
+    --header-text:#f3ece2;
+    --badge-bg:#3a3128;
+  }
+
+  * { box-sizing: border-box; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"PingFang TC","Microsoft JhengHei","Noto Sans TC",-apple-system,BlinkMacSystemFont,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:40px;
+  }
+  header{
+    background:var(--header-bg);
+    color:var(--header-text);
+    padding:22px 16px 18px;
+    text-align:center;
+    position:sticky;
+    top:0;
+    z-index:5;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
+  }
+  header h1{
+    margin:0;
+    font-size:1.5rem;
+    letter-spacing:1px;
+  }
+  header .sub{
+    margin-top:6px;
+    font-size:0.95rem;
+    color:var(--muted);
+    display:flex;
+    justify-content:center;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  #progress{
+    max-width:640px;
+    margin:14px auto 0;
+    padding:0 16px;
+  }
+  #progress .bar-bg{
+    background:rgba(255,255,255,0.15);
+    border-radius:99px;
+    height:8px;
+    overflow:hidden;
+  }
+  #progress .bar-fill{
+    height:100%;
+    width:0%;
+    background:var(--accent-2);
+    transition:width .25s ease;
+  }
+  #progress .count{
+    text-align:center;
+    font-size:0.85rem;
+    color:var(--muted);
+    margin-top:6px;
+  }
+
+  main{
+    max-width:640px;
+    margin:0 auto;
+    padding:16px;
+  }
+
+  .customer-card{
+    background:var(--card-bg);
+    border-radius:16px;
+    margin-bottom:18px;
+    box-shadow:0 1px 4px rgba(0,0,0,0.06);
+    overflow:hidden;
+    border:1px solid var(--line);
+  }
+  .customer-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:14px 16px;
+    background:var(--badge-bg);
+    border-bottom:1px solid var(--line);
+  }
+  .customer-name{
+    font-size:1.25rem;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .customer-name .icon{
+    font-size:1.3rem;
+  }
+  .customer-total{
+    font-size:0.9rem;
+    color:var(--muted);
+    white-space:nowrap;
+  }
+
+  .item{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:14px 16px;
+    border-bottom:1px solid var(--line);
+    transition:background .15s ease, opacity .15s ease;
+  }
+  .item:last-child{ border-bottom:none; }
+  .item.done{
+    opacity:0.45;
+  }
+  .item.done .drink-name{
+    text-decoration:line-through;
+  }
+
+  .check{
+    flex:0 0 auto;
+    width:28px;
+    height:28px;
+    border-radius:8px;
+    border:2px solid var(--accent);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.1rem;
+    color:var(--card-bg);
+    cursor:pointer;
+    user-select:none;
+    margin-top:2px;
+  }
+  .item.done .check{
+    background:var(--accent);
+  }
+
+  .item-body{ flex:1; min-width:0; }
+  .drink-name{
+    font-size:1.15rem;
+    font-weight:700;
+    margin-bottom:6px;
+  }
+  .tags{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .tag{
+    font-size:0.85rem;
+    padding:3px 10px;
+    border-radius:99px;
+    background:var(--badge-bg);
+    color:var(--text);
+    white-space:nowrap;
+  }
+  .tag.sweet{ border:1px solid var(--accent); color:var(--accent); background:transparent; }
+  .tag.ice{ border:1px solid #6c93b8; color:#6c93b8; background:transparent; }
+  .tag.add{ border:1px solid var(--accent-2); color:var(--accent-2); background:transparent; }
+
+  footer{
+    text-align:center;
+    color:var(--muted);
+    font-size:0.8rem;
+    margin-top:20px;
+    padding:0 16px;
+  }
+
+  .reset-btn{
+    display:block;
+    margin:20px auto 0;
+    padding:10px 22px;
+    border-radius:99px;
+    border:1px solid var(--line);
+    background:var(--card-bg);
+    color:var(--muted);
+    font-size:0.9rem;
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧋 飲料訂單</h1>
+  <div class="sub">
+    <span id="dateLabel"></span>
+    <span>共 <b id="totalCount">0</b> 杯</span>
+  </div>
+  <div id="progress">
+    <div class="bar-bg"><div class="bar-fill" id="barFill"></div></div>
+    <div class="count"><span id="doneCount">0</span> / <span id="totalCount2">0</span> 已完成</div>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<button class="reset-btn" id="resetBtn">重設勾選</button>
+<footer>點擊圓圈即可標記已完成 · 資料如有出入請以原始訂單為準</footer>
+
+<script>
+const orders = [
+  { name:"仲逸次郎", items:[
+    {drink:"冬瓜茶", sweet:"全糖", ice:"少冰", add:"免加料"},
+    {drink:"冬瓜檸檬", sweet:"全糖", ice:"正常冰", add:"免加料"},
+    {drink:"冬瓜檸檬", sweet:"8分糖", ice:"正常冰", add:"免加料"},
+    {drink:"烏龍紅", sweet:"微糖", ice:"少冰", add:"珍珠"},
+    {drink:"青茶", sweet:"半糖", ice:"少冰", add:"免加料"},
+  ]},
+  { name:"欣芸花子", items:[
+    {drink:"甘蔗青", sweet:"微糖", ice:"微冰", add:"免加料"},
+    {drink:"甘蔗青", sweet:"無糖", ice:"少冰", add:"免加料"},
+    {drink:"甘蔗青", sweet:"1分糖", ice:"少冰", add:"珍珠"},
+  ]},
+  { name:"建智一郎", items:[
+    {drink:"百香冰茶", sweet:"微糖", ice:"微冰", add:"免加料"},
+    {drink:"百香冰茶", sweet:"微糖", ice:"微冰", add:"椰果"},
+    {drink:"百香冰茶", sweet:"微糖", ice:"微冰", add:"椰果"},
+    {drink:"紅茶", sweet:"8分糖", ice:"微冰", add:"珍珠, 奶精"},
+    {drink:"烏龍茶", sweet:"半糖", ice:"微冰", add:"仙草凍, 奶精"},
+    {drink:"紅茶", sweet:"微糖", ice:"微冰", add:"免加料"},
+    {drink:"紅茶", sweet:"微糖", ice:"微冰", add:"免加料"},
+    {drink:"紅茶", sweet:"微糖", ice:"微冰", add:"免加料"},
+    {drink:"紅茶", sweet:"微糖", ice:"微冰", add:"免加料"},
+  ]},
+  { name:"詠仲太郎", items:[
+    {drink:"甘蔗青", sweet:"1分糖", ice:"正常冰", add:"免加料"},
+    {drink:"珍珠奶茶", sweet:"微糖", ice:"微冰", add:"免加料"},
+    {drink:"蜂蜜檸檬", sweet:"微糖", ice:"微冰", add:"免加料"},
+    {drink:"冬瓜檸檬", sweet:"微糖", ice:"微冰", add:"珍珠"},
+  ]},
+];
+
+const main = document.getElementById('main');
+let idCounter = 0;
+let totalItems = 0;
+
+orders.forEach(customer => {
+  totalItems += customer.items.length;
+  const card = document.createElement('div');
+  card.className = 'customer-card';
+
+  const head = document.createElement('div');
+  head.className = 'customer-head';
+  head.innerHTML = `
+    <div class="customer-name"><span class="icon">👤</span>${customer.name}</div>
+    <div class="customer-total">${customer.items.length} 杯</div>
+  `;
+  card.appendChild(head);
+
+  customer.items.forEach(it => {
+    const id = 'item-' + (idCounter++);
+    const row = document.createElement('div');
+    row.className = 'item';
+    row.id = id;
+    row.innerHTML = `
+      <div class="check">✓</div>
+      <div class="item-body">
+        <div class="drink-name">${it.drink}</div>
+        <div class="tags">
+          <span class="tag sweet">${it.sweet}</span>
+          <span class="tag ice">${it.ice}</span>
+          <span class="tag add">${it.add}</span>
+        </div>
+      </div>
+    `;
+    row.addEventListener('click', () => toggleDone(id));
+    card.appendChild(row);
+  });
+
+  main.appendChild(card);
+});
+
+document.getElementById('totalCount').textContent = totalItems;
+document.getElementById('totalCount2').textContent = totalItems;
+
+const dateLabel = document.getElementById('dateLabel');
+try {
+  dateLabel.textContent = new Date().toLocaleDateString('zh-TW', { month:'long', day:'numeric', weekday:'short' });
+} catch(e) { dateLabel.textContent = ''; }
+
+const STORAGE_KEY = 'drink-order-done-v1';
+
+function loadDone(){
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch(e) { return {}; }
+}
+function saveDone(state){
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+}
+
+let doneState = loadDone();
+
+function applyState(){
+  let doneCount = 0;
+  document.querySelectorAll('.item').forEach(row => {
+    if (doneState[row.id]) {
+      row.classList.add('done');
+      doneCount++;
+    } else {
+      row.classList.remove('done');
+    }
+  });
+  document.getElementById('doneCount').textContent = doneCount;
+  const pct = totalItems ? Math.round((doneCount/totalItems)*100) : 0;
+  document.getElementById('barFill').style.width = pct + '%';
+}
+
+function toggleDone(id){
+  doneState[id] = !doneState[id];
+  saveDone(doneState);
+  applyState();
+}
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  doneState = {};
+  saveDone(doneState);
+  applyState();
+});
+
+applyState();
+</script>
+</body>
+</html>
